@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      1.9
+// @version      2.1
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -13,7 +13,6 @@
 (function() {
     'use strict';
 
-    let isGamePaused = true;
     let isSettingsComplete = false;
 
     // Create and style container
@@ -70,8 +69,12 @@
         backButton.style.transform = 'scale(1)';
     };
     backButton.onclick = function() {
-        settingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        settingsContainer.style.display = 'block'; // Ensure settings are visible
+        if (!isSettingsComplete) {
+            settingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            settingsContainer.style.display = 'block'; // Ensure settings are visible
+        } else {
+            startGameScript();
+        }
     };
     header.appendChild(backButton);
 
@@ -155,53 +158,36 @@
     };
     settingsContainer.appendChild(saveSettingsButton);
 
+    // Create and style play button
+    const playButton = document.createElement('button');
+    playButton.textContent = 'Play Game';
+    playButton.style.padding = '10px 20px';
+    playButton.style.backgroundColor = '#e74c3c'; // Red color
+    playButton.style.color = 'white';
+    playButton.style.border = 'none';
+    playButton.style.borderRadius = '6px';
+    playButton.style.cursor = 'pointer';
+    playButton.style.marginTop = '15px';
+    playButton.style.fontSize = '14px';
+    playButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
+    playButton.onmouseover = function() {
+        playButton.style.backgroundColor = '#c0392b'; // Darker red
+        playButton.style.transform = 'scale(1.05)';
+    };
+    playButton.onmouseout = function() {
+        playButton.style.backgroundColor = '#e74c3c'; // Red color
+        playButton.style.transform = 'scale(1)';
+    };
+    playButton.onclick = function() {
+        if (isSettingsComplete) {
+            startGameScript();
+        }
+    };
+    settingsContainer.appendChild(playButton);
+
     // Add event listener to save settings button
     saveSettingsButton.onclick = function() {
         isSettingsComplete = true;
-        settingsContainer.style.display = 'none';
-        startGameScript();
-    };
-
-    // Responsive adjustments
-    const style = document.createElement('style');
-    style.textContent = `
-        @media (max-width: 600px) {
-            .dashboard-container {
-                padding: 15px;
-                font-size: 14px;
-            }
-            .dashboard-container h1 {
-                font-size: 18px;
-            }
-            .dashboard-btn {
-                padding: 8px 14px;
-                font-size: 12px;
-            }
-        }
-        @media (max-width: 400px) {
-            .dashboard-container {
-                padding: 10px;
-                font-size: 12px;
-            }
-            .dashboard-container h1 {
-                font-size: 16px;
-            }
-            .dashboard-btn {
-                padding: 6px 12px;
-                font-size: 11px;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Additional CSS animations
-    const animationStyle = document.createElement('style');
-    animationStyle.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-
- 
+        settingsContainer.style.display = 'none'; // Hide settings
+        container.append
+        
