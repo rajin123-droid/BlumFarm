@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      3.1
-// @namespace    Codevoyger
-// @author       Codevoyger
+// @version      1.3
+// @namespace    iaminajourney
+// @author       iaminajourney
 // @match        https://telegram.blum.codes/*
 // @grant        none
 // @icon         https://raw.githubusercontent.com/ilfae/ilfae/main/logo.webp
@@ -13,99 +13,169 @@
 (function() {
     'use strict';
 
-    // Create and style the container
+    // Game Settings
+    let GAME_SETTINGS = {
+        BombHits: 0,
+        IceHits: 2,
+        flowerSkipPercentage: 15,
+        minDelayMs: 2000,
+        maxDelayMs: 5000,
+    };
+
+    let isGamePaused = true;
+    let isSettingsOpen = false;
+
     const container = document.createElement('div');
     container.style.position = 'fixed';
-    container.style.top = '10px';
+    container.style.top = '0';
     container.style.left = '50%';
     container.style.transform = 'translateX(-50%)';
     container.style.zIndex = '9999';
-    container.style.backgroundColor = '#2c3e50'; // Darker background for contrast
-    container.style.padding = '20px 30px';
-    container.style.borderRadius = '12px';
+    container.style.backgroundColor = '#1e1e1e';
+    container.style.padding = '20px';
+    container.style.borderRadius = '10px';
     container.style.color = 'white';
     container.style.textAlign = 'center';
-    container.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
-    container.style.width = '90%'; // Adjust width
-    container.style.maxWidth = '400px'; // Maximum width for responsiveness
+    container.style.fontFamily = 'Arial, sans-serif';
     document.body.appendChild(container);
 
-    // Create the message
+    const header = document.createElement('h2');
+    header.textContent = 'BlumFarm Dashboard';
+    header.style.color = '#FFD700';
+    container.appendChild(header);
+
     const message = document.createElement('p');
-    message.textContent = 'You are using a pirated version, click below for more info';
+    message.textContent = 'You are using a pirated version, click on ↓';
     container.appendChild(message);
 
-    // Create the toggle button
     const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'More Info';
-    toggleButton.style.padding = '10px 20px';
-    toggleButton.style.backgroundColor = '#5d2a8f'; // Purple color
+    toggleButton.textContent = '↓';
+    toggleButton.style.padding = '5px 10px';
+    toggleButton.style.backgroundColor = '#5d2a8f';
     toggleButton.style.color = 'white';
     toggleButton.style.border = 'none';
-    toggleButton.style.borderRadius = '6px';
+    toggleButton.style.borderRadius = '5px';
     toggleButton.style.cursor = 'pointer';
-    toggleButton.style.marginTop = '15px';
-    toggleButton.style.fontSize = '14px';
-    toggleButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
-    toggleButton.onmouseover = function() {
-        toggleButton.style.backgroundColor = '#8e44ad'; // Hover effect
-        toggleButton.style.transform = 'scale(1.05)';
-    };
-    toggleButton.onmouseout = function() {
-        toggleButton.style.backgroundColor = '#5d2a8f';
-        toggleButton.style.transform = 'scale(1)';
-    };
+    toggleButton.style.marginTop = '10px';
     container.appendChild(toggleButton);
 
-    // Create the purchase block
     const purchaseBlock = document.createElement('div');
     purchaseBlock.style.display = 'none';
     purchaseBlock.style.marginTop = '10px';
     purchaseBlock.style.color = 'white';
-    purchaseBlock.style.fontSize = '14px';
-    purchaseBlock.style.lineHeight = '1.5';
-    purchaseBlock.innerHTML = `
-        <p>Visit <a href="https://t.me/iaminajourney" style="color: #00bfff;">@iaminajourney</a> to purchase the script.</p>
-        <p>New updates are waiting for you after payment!</p>
-    `;
+    purchaseBlock.innerHTML = 'Go <a href="https://t.me/iaminajourney" style="color: #00bfff;">@iaminajourney</a> to purchase the script, also a new update is waiting for you after payment';
     container.appendChild(purchaseBlock);
 
-    // Toggle the purchase block on button click
     toggleButton.onclick = function() {
         purchaseBlock.style.display = purchaseBlock.style.display === 'none' ? 'block' : 'none';
     };
 
-    // Show "Script is running" message when purchase block is revealed
-    function showScriptRunningMessage() {
-        const runningMessage = document.createElement('div');
-        runningMessage.textContent = 'Script is running...';
-        runningMessage.style.position = 'fixed';
-        runningMessage.style.bottom = '10px';
-        runningMessage.style.left = '50%';
-        runningMessage.style.transform = 'translateX(-50%)';
-        runningMessage.style.backgroundColor = '#27ae60';
-        runningMessage.style.color = 'white';
-        runningMessage.style.padding = '10px 20px';
-        runningMessage.style.borderRadius = '6px';
-        runningMessage.style.zIndex = '10000';
-        runningMessage.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-        document.body.appendChild(runningMessage);
+    // Pause/Resume Button
+    const pauseButton = document.createElement('button');
+    pauseButton.textContent = '▶';
+    pauseButton.style.padding = '4px 8px';
+    pauseButton.style.backgroundColor = '#5d2a8f';
+    pauseButton.style.color = 'white';
+    pauseButton.style.border = 'none';
+    pauseButton.style.borderRadius = '10px';
+    pauseButton.style.cursor = 'pointer';
+    pauseButton.style.marginRight = '5px';
+    container.appendChild(pauseButton);
 
-        setTimeout(() => {
-            runningMessage.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(runningMessage);
-            }, 300);
-        }, 2000);
-    }
+    pauseButton.onclick = function() {
+        isGamePaused = !isGamePaused;
+        pauseButton.textContent = isGamePaused ? '▶' : '❚❚';
+    };
 
-    purchaseBlock.style.display = 'none';
-    toggleButton.onclick = function() {
-        const isVisible = purchaseBlock.style.display === 'block';
-        purchaseBlock.style.display = isVisible ? 'none' : 'block';
-        if (!isVisible) {
-            showScriptRunningMessage();
+    // Settings Button
+    const settingsButton = document.createElement('button');
+    settingsButton.textContent = 'Settings';
+    settingsButton.style.padding = '4px 8px';
+    settingsButton.style.backgroundColor = '#5d2a8f';
+    settingsButton.style.color = 'white';
+    settingsButton.style.border = 'none';
+    settingsButton.style.borderRadius = '10px';
+    settingsButton.style.cursor = 'pointer';
+    container.appendChild(settingsButton);
+
+    // Settings Container
+    const settingsContainer = document.createElement('div');
+    settingsContainer.style.display = 'none';
+    settingsContainer.style.marginTop = '10px';
+    container.appendChild(settingsContainer);
+
+    settingsButton.onclick = function() {
+        isSettingsOpen = !isSettingsOpen;
+        settingsContainer.style.display = isSettingsOpen ? 'block' : 'none';
+        if (isSettingsOpen) {
+            settingsContainer.innerHTML = '';
+            settingsContainer.appendChild(createSettingInput('Bomb:', 'BombHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Ice:', 'IceHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Flower Skip %:', 'flowerSkipPercentage', 0, 100));
+
+            // Back Button
+            const backButton = document.createElement('button');
+            backButton.textContent = 'Back';
+            backButton.style.padding = '4px 8px';
+            backButton.style.backgroundColor = '#FFD700';
+            backButton.style.color = '#1e1e1e';
+            backButton.style.border = 'none';
+            backButton.style.borderRadius = '5px';
+            backButton.style.cursor = 'pointer';
+            backButton.style.marginTop = '10px';
+            settingsContainer.appendChild(backButton);
+
+            backButton.onclick = function() {
+                settingsContainer.style.display = 'none';
+                isSettingsOpen = false;
+                settingsButton.textContent = 'Settings';
+            };
         }
     };
+
+    // Create Setting Input Function
+    function createSettingInput(label, settingName, min, max) {
+        const settingDiv = document.createElement('div');
+        settingDiv.style.marginBottom = '5px';
+        settingDiv.style.color = 'white';
+
+        const labelElement = document.createElement('label');
+        labelElement.textContent = label;
+        labelElement.style.display = 'block';
+        labelElement.style.color = 'white';
+        settingDiv.appendChild(labelElement);
+
+        const inputElement = document.createElement('input');
+        inputElement.type = 'number';
+        inputElement.value = GAME_SETTINGS[settingName];
+        inputElement.min = min;
+        inputElement.max = max;
+        inputElement.style.width = '50px';
+        inputElement.addEventListener('input', () => {
+            GAME_SETTINGS[settingName] = parseInt(inputElement.value, 10);
+        });
+        settingDiv.appendChild(inputElement);
+
+        return settingDiv;
+    }
+
+    // Start Button
+    const startButton = document.createElement('button');
+    startButton.textContent = 'Start';
+    startButton.style.padding = '4px 8px';
+    startButton.style.backgroundColor = '#FFD700';
+    startButton.style.color = '#1e1e1e';
+    startButton.style.border = 'none';
+    startButton.style.borderRadius = '5px';
+    startButton.style.cursor = 'pointer';
+    startButton.style.marginTop = '10px';
+    container.appendChild(startButton);
+
+    startButton.onclick = function() {
+        console.log('Script is running...');
+        settingsContainer.style.display = 'none';
+        isSettingsOpen = false;
+        settingsButton.textContent = 'Settings';
+    };
 })();
+        
