@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      1.2
+// @version      1.3
 // @match        https://telegram.blum.codes/*
 // @grant        none
 // @icon         https://raw.githubusercontent.com/ilfae/ilfae/main/logo.webp
@@ -94,6 +94,8 @@ try {
             resetGameStats();
             if (window.__NUXT__.state.$s$0olocQZxou.playPasses > 0) {
                 startNewGame();
+            } else {
+                playRemainingGames();
             }
         }
     }
@@ -124,6 +126,20 @@ try {
             }
             gameStats.isGameOver = false;
         }, getRandomDelay());
+    }
+
+    function playRemainingGames() {
+        const remainingGames = window.__NUXT__.state.$s$0olocQZxou.playPasses;
+        if (remainingGames > 0) {
+            startNewGame();
+        }
+    }
+
+    function startBlumBotDrop() {
+        const dropButton = document.querySelector("#app > div > div > div.buttons > button:nth-child(3)"); // Adjust the selector based on actual button location
+        if (dropButton) {
+            dropButton.click();
+        }
     }
 
     const observer = new MutationObserver(mutations => {
@@ -159,23 +175,26 @@ try {
     const lineBreak = document.createElement('br');
     controlsContainer.appendChild(lineBreak);
 
-    const pauseButton = document.createElement('button');
-    pauseButton.textContent = '▶';
-    pauseButton.style.padding = '4px 8px';
-    pauseButton.style.backgroundColor = '#5d2a8f';
-    pauseButton.style.color = 'white';
-    pauseButton.style.border = 'none';
-    pauseButton.style.borderRadius = '10px';
-    pauseButton.style.cursor = 'pointer';
-    pauseButton.style.marginRight = '5px';
-    pauseButton.onclick = toggleGamePause;
-    controlsContainer.appendChild(pauseButton);
+    const playButton = document.createElement('button');
+    playButton.textContent = '▶';
+    playButton.style.padding = '4px 8px';
+    playButton.style.backgroundColor = '#ffcc00'; // Premium gold color
+    playButton.style.color = '#004d99'; // Sky blue text color
+    playButton.style.border = 'none';
+    playButton.style.borderRadius = '10px';
+    playButton.style.cursor = 'pointer';
+    playButton.style.marginRight = '5px';
+    playButton.onclick = function () {
+        toggleGamePause();
+        startBlumBotDrop();
+    };
+    controlsContainer.appendChild(playButton);
 
     const settingsButton = document.createElement('button');
-    settingsButton.textContent = atob('U2V0dGluZ3M=');
+    settingsButton.textContent = 'Settings';
     settingsButton.style.padding = '4px 8px';
-    settingsButton.style.backgroundColor = '#5d2a8f';
-    settingsButton.style.color = 'white';
+    settingsButton.style.backgroundColor = '#ffcc00'; // Premium gold color
+    settingsButton.style.color = '#004d99'; // Sky blue text color
     settingsButton.style.border = 'none';
     settingsButton.style.borderRadius = '10px';
     settingsButton.style.cursor = 'pointer';
@@ -227,9 +246,13 @@ try {
 
     function toggleGamePause() {
         isGamePaused = !isGamePaused;
-        pauseButton.textContent = isGamePaused ? '▶' : '❚❚';
+        playButton.textContent = isGamePaused ? '▶' : '❚❚';
+        if (!isGamePaused) {
+            startBlumBotDrop(); // Start the Blum bot drop game when the script starts running
+        }
     }
 
 } catch (e) {
     console.log('Failed to initiate the game script');
         }
+        
