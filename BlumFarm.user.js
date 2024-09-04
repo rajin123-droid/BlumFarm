@@ -67,7 +67,8 @@
         backButton.style.transform = 'scale(1)';
     };
     backButton.onclick = function() {
-        window.history.back();
+        settingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        settingsContainer.style.display = 'block'; // Ensure settings are visible
     };
     header.appendChild(backButton);
 
@@ -100,6 +101,16 @@
         toggleButton.style.transform = 'scale(1)';
     };
     container.appendChild(toggleButton);
+
+    // Create and style settings container
+    const settingsContainer = document.createElement('div');
+    settingsContainer.style.display = 'none';
+    settingsContainer.style.marginTop = '15px';
+    settingsContainer.style.color = 'black';
+    settingsContainer.style.fontSize = '14px';
+    settingsContainer.style.lineHeight = '1.5';
+    settingsContainer.style.textAlign = 'left';
+    container.appendChild(settingsContainer);
 
     // Create and style purchase block
     const purchaseBlock = document.createElement('div');
@@ -172,3 +183,4 @@
     document.head.appendChild(animationStyle);
 
 })();
+        
