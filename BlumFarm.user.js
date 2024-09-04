@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      1.3
+// @version      1.6
 // @match        https://telegram.blum.codes/*
 // @grant        none
-// @icon         https://raw.githubusercontent.com/ilfae/ilfae/main/logo.webp
+// @icon         https://raw.githubusercontent.com/rajin123-droid/BlumFarm/main/logo.webp
 // @updateURL    https://github.com/rajin123-droid/BlumFarm/raw/main/BlumFarm.user.js
 // @downloadURL  https://github.com/rajin123-droid/BlumFarm/raw/main/BlumFarm.user.js
 // ==/UserScript==
@@ -92,11 +92,7 @@ try {
             gameStats.isGameOver = true;
             logGameStats();
             resetGameStats();
-            if (window.__NUXT__.state.$s$0olocQZxou.playPasses > 0) {
-                startNewGame();
-            } else {
-                playRemainingGames();
-            }
+            findAndClickPlayButton();
         }
     }
 
@@ -118,28 +114,25 @@ try {
         return Math.random() * (GAME_SETTINGS.maxDelayMs - GAME_SETTINGS.minDelayMs) + GAME_SETTINGS.minDelayMs;
     }
 
-    function startNewGame() {
-        setTimeout(() => {
-            const newGameButton = document.querySelector("#app > div > div > div.buttons > button:nth-child(2)");
-            if (newGameButton) {
-                newGameButton.click();
-            }
-            gameStats.isGameOver = false;
-        }, getRandomDelay());
-    }
+    function clickPlayButton() {
+        const playButton = Array.from(document.querySelectorAll('button')).find(btn => 
+            btn.textContent.trim().startsWith('Play')
+        );
 
-    function playRemainingGames() {
-        const remainingGames = window.__NUXT__.state.$s$0olocQZxou.playPasses;
-        if (remainingGames > 0) {
-            startNewGame();
+        if (playButton) {
+            playButton.click();
+            console.log('Play button clicked. Starting new game...');
+            checkGameCompletion();
+            setTimeout(findAndClickPlayButton, 32000); // Restart the loop after 32 seconds for next round
+        } else {
+            console.log('No Play button found. Will retry...');
+            setTimeout(findAndClickPlayButton, 3000); // Retry every 3 seconds if not found
         }
     }
 
-    function startBlumBotDrop() {
-        const dropButton = document.querySelector("#app > div > div > div.buttons > button:nth-child(3)"); // Adjust the selector based on actual button location
-        if (dropButton) {
-            dropButton.click();
-        }
+    function findAndClickPlayButton() {
+        console.log('Attempting to find and click the Play button...');
+        clickPlayButton();
     }
 
     const observer = new MutationObserver(mutations => {
@@ -166,35 +159,39 @@ try {
     controlsContainer.style.borderRadius = '10px';
     document.body.appendChild(controlsContainer);
 
-    const codevoygerLink = document.createElement('a');
-    codevoygerLink.href = 'https://t.me/HotCastr';
-    codevoygerLink.textContent = 'Codevoyger 🔗';
-    codevoygerLink.style.color = 'white';
-    controlsContainer.appendChild(codevoygerLink);
+    const OutGamePausedTrue = document.createElement('a');
+    OutGamePausedTrue.href = 'https://t.me/HotCastr';
+    OutGamePausedTrue.textContent = 'CodeVoygers';
+    OutGamePausedTrue.style.color = 'white';
+    controlsContainer.appendChild(OutGamePausedTrue);
 
     const lineBreak = document.createElement('br');
     controlsContainer.appendChild(lineBreak);
 
-    const playButton = document.createElement('button');
-    playButton.textContent = '▶';
-    playButton.style.padding = '4px 8px';
-    playButton.style.backgroundColor = '#ffcc00'; // Premium gold color
-    playButton.style.color = '#004d99'; // Sky blue text color
-    playButton.style.border = 'none';
-    playButton.style.borderRadius = '10px';
-    playButton.style.cursor = 'pointer';
-    playButton.style.marginRight = '5px';
-    playButton.onclick = function () {
+    const pauseButton = document.createElement('button');
+    pauseButton.textContent = '▶';
+    pauseButton.style.padding = '4px 8px';
+    pauseButton.style.backgroundColor = '#FFD700'; // Premium Gold
+    pauseButton.style.color = '#00BFFF'; // Sky Blue
+    pauseButton.style.border = 'none';
+    pauseButton.style.borderRadius = '10px';
+    pauseButton.style.cursor = 'pointer';
+    pauseButton.style.marginRight = '5px';
+    pauseButton.onclick = function() {
         toggleGamePause();
-        startBlumBotDrop();
+        if (!isGamePaused) {
+            findAndClickPlayButton(); // Start the loop to find and click the Play button
+        }
     };
-    controlsContainer.appendChild(playButton);
+    controlsContainer.appendChild(pauseButton);
 
     const settingsButton = document.createElement('button');
     settingsButton.textContent = 'Settings';
+    settingsButton.style.fontWeight = 'bold'; // Make the font bold
+    settingsButton.style.fontFamily = 'Arial, sans-serif'; // Stylish font
+    settingsButton.style.color = 'black'; // Font color set to black
     settingsButton.style.padding = '4px 8px';
-    settingsButton.style.backgroundColor = '#ffcc00'; // Premium gold color
-    settingsButton.style.color = '#004d99'; // Sky blue text color
+    settingsButton.style.backgroundColor = '#FFD700'; // Premium Gold
     settingsButton.style.border = 'none';
     settingsButton.style.borderRadius = '10px';
     settingsButton.style.cursor = 'pointer';
@@ -246,13 +243,10 @@ try {
 
     function toggleGamePause() {
         isGamePaused = !isGamePaused;
-        playButton.textContent = isGamePaused ? '▶' : '❚❚';
-        if (!isGamePaused) {
-            startBlumBotDrop(); // Start the Blum bot drop game when the script starts running
-        }
+        pauseButton.textContent = isGamePaused ? '▶' : '❚❚';
+        console.log(`Game ${isGamePaused ? 'paused' : 'resumed'}`);
     }
 
-} catch (e) {
-    console.log('Failed to initiate the game script');
-        }
-        
+} catch (error) {
+    console.error('An error occurred:', error);
+}
