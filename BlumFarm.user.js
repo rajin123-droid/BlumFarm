@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      2.1
+// @version      2.5
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -14,6 +14,27 @@
     'use strict';
 
     let isSettingsComplete = false;
+    let isGameStarted = false;
+
+    // Function to start the game script
+    function startGameScript() {
+        if (!isGameStarted) {
+            isGameStarted = true;
+            // Add your game script logic here
+            console.log('Game script started!'); // Placeholder for actual game logic
+        }
+    }
+
+    // Function to show the dashboard
+    function showDashboard() {
+        container.style.transform = 'translateX(-50%)'; // Ensure the dashboard is centered
+        container.style.display = 'block'; // Ensure the dashboard is visible
+    }
+
+    // Function to hide the dashboard
+    function hideDashboard() {
+        container.style.display = 'none';
+    }
 
     // Create and style container
     const container = document.createElement('div');
@@ -32,7 +53,8 @@
     container.style.maxWidth = '90%';
     container.style.minWidth = '280px'; // Adjusted minimum width
     container.style.boxSizing = 'border-box';
-    container.style.transition = 'transform 0.3s ease-in-out';
+    container.style.transition = 'transform 0.3s ease-in-out, opacity 0.3s ease-in-out';
+    container.style.display = 'none'; // Initially hidden
     document.body.appendChild(container);
 
     // Create and style header
@@ -70,8 +92,8 @@
     };
     backButton.onclick = function() {
         if (!isSettingsComplete) {
+            settingsContainer.style.display = 'block'; // Show settings
             settingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            settingsContainer.style.display = 'block'; // Ensure settings are visible
         } else {
             startGameScript();
         }
@@ -156,6 +178,12 @@
         saveSettingsButton.style.backgroundColor = '#2ecc71'; // Green color
         saveSettingsButton.style.transform = 'scale(1)';
     };
+    saveSettingsButton.onclick = function() {
+        isSettingsComplete = true;
+        settingsContainer.style.display = 'none'; // Hide settings after saving
+        playButton.style.display = 'block'; // Show play button
+        backButton.textContent = 'Start Game'; // Update button text
+    };
     settingsContainer.appendChild(saveSettingsButton);
 
     // Create and style play button
@@ -178,16 +206,20 @@
         playButton.style.backgroundColor = '#e74c3c'; // Red color
         playButton.style.transform = 'scale(1)';
     };
+    playButton.style.display = 'none'; // Initially hidden
     playButton.onclick = function() {
         if (isSettingsComplete) {
             startGameScript();
+        } else {
+            alert('Please complete the settings first.');
         }
     };
-    settingsContainer.appendChild(playButton);
+    container.appendChild(playButton);
 
-    // Add event listener to save settings button
-    saveSettingsButton.onclick = function() {
-        isSettingsComplete = true;
-        settingsContainer.style.display = 'none'; // Hide settings
-        container.append
-        
+    // Automatically show the dashboard on page load
+    window.addEventListener('load', function() {
+        showDashboard();
+    });
+
+})();
+    
