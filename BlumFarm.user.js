@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      2.8
+// @version      2.9
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -22,6 +22,7 @@
     let isSettingsComplete = false;
     let isGameStarted = false;
 
+    // Function to start the game script
     function startGameScript() {
         if (!isGameStarted) {
             isGameStarted = true;
@@ -171,8 +172,8 @@
             settingsContainer.appendChild(createSettingInput('Ice to Click:', 'IceHits', 0, 10));
             settingsContainer.appendChild(createSettingInput('Green Leaves to Click:', 'FlowerHits', 1, 20)); // Default to 1 if none
             settingsContainer.appendChild(createBackButton(() => {
-                container.style.display = 'none'; // Hide dashboard
-                showDashboard(); // Show settings
+                settingsContainer.style.display = 'none'; // Hide settings
+                showDashboard(); // Show main dashboard
             }));
         }
     }
@@ -215,10 +216,16 @@
 
     // Back button functionality
     const backButton = createBackButton(() => {
-        settingsContainer.style.display = 'none'; // Hide settings
-        showDashboard(); // Show main dashboard
+        if (settingsContainer.style.display === 'none') {
+            // If not in settings, show settings and hide dashboard
+            toggleSettings();
+        } else {
+            // If in settings, show dashboard and hide settings
+            settingsContainer.style.display = 'none';
+            showDashboard();
+        }
     });
     header.appendChild(backButton);
 
 })();
-    
+            
