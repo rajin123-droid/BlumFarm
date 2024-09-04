@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      1.8
+// @version      1.9
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -12,6 +12,9 @@
 
 (function() {
     'use strict';
+
+    let isGamePaused = true;
+    let isSettingsComplete = false;
 
     // Create and style container
     const container = document.createElement('div');
@@ -130,6 +133,35 @@
         purchaseBlock.style.display = purchaseBlock.style.display === 'none' ? 'block' : 'none';
     };
 
+    // Create and style settings save button
+    const saveSettingsButton = document.createElement('button');
+    saveSettingsButton.textContent = 'Save Settings';
+    saveSettingsButton.style.padding = '8px 16px';
+    saveSettingsButton.style.backgroundColor = '#2ecc71'; // Green color
+    saveSettingsButton.style.color = 'white';
+    saveSettingsButton.style.border = 'none';
+    saveSettingsButton.style.borderRadius = '6px';
+    saveSettingsButton.style.cursor = 'pointer';
+    saveSettingsButton.style.marginTop = '10px';
+    saveSettingsButton.style.fontSize = '14px';
+    saveSettingsButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
+    saveSettingsButton.onmouseover = function() {
+        saveSettingsButton.style.backgroundColor = '#27ae60'; // Darker green
+        saveSettingsButton.style.transform = 'scale(1.05)';
+    };
+    saveSettingsButton.onmouseout = function() {
+        saveSettingsButton.style.backgroundColor = '#2ecc71'; // Green color
+        saveSettingsButton.style.transform = 'scale(1)';
+    };
+    settingsContainer.appendChild(saveSettingsButton);
+
+    // Add event listener to save settings button
+    saveSettingsButton.onclick = function() {
+        isSettingsComplete = true;
+        settingsContainer.style.display = 'none';
+        startGameScript();
+    };
+
     // Responsive adjustments
     const style = document.createElement('style');
     style.textContent = `
@@ -171,16 +203,5 @@
         }
         @keyframes slideUp {
             from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        div, button, p {
-            animation: fadeIn 0.5s ease-out;
-        }
-        button {
-            animation: slideUp 0.5s ease-out;
-        }
-    `;
-    document.head.appendChild(animationStyle);
 
-})();
-        
+ 
