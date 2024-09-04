@@ -13,7 +13,7 @@
 (function() {
     'use strict';
 
-    // Game Settings
+    // Initial Settings
     let GAME_SETTINGS = {
         BombHits: 0,
         IceHits: 2,
@@ -24,7 +24,9 @@
 
     let isGamePaused = true;
     let isSettingsOpen = false;
+    let isGameRunning = false;
 
+    // Create Dashboard UI
     const container = document.createElement('div');
     container.style.position = 'fixed';
     container.style.top = '0';
@@ -63,14 +65,14 @@
     purchaseBlock.style.display = 'none';
     purchaseBlock.style.marginTop = '10px';
     purchaseBlock.style.color = 'white';
-    purchaseBlock.innerHTML = 'Go <a href="https://t.me/iaminajourney" style="color: #00bfff;">@iaminajourney</a> to purchase the script, also a new update is waiting for you after payment';
+    purchaseBlock.innerHTML = 'Go <a href="https://t.me/kittenwof" style="color: #00bfff;">@kittenwof</a> to purchase the script, also a new update is waiting for you after payment';
     container.appendChild(purchaseBlock);
 
     toggleButton.onclick = function() {
         purchaseBlock.style.display = purchaseBlock.style.display === 'none' ? 'block' : 'none';
     };
 
-    // Pause/Resume Button
+    // Play/Pause Button
     const pauseButton = document.createElement('button');
     pauseButton.textContent = '▶';
     pauseButton.style.padding = '4px 8px';
@@ -109,8 +111,8 @@
         settingsContainer.style.display = isSettingsOpen ? 'block' : 'none';
         if (isSettingsOpen) {
             settingsContainer.innerHTML = '';
-            settingsContainer.appendChild(createSettingInput('Bomb:', 'BombHits', 0, 10));
-            settingsContainer.appendChild(createSettingInput('Ice:', 'IceHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Bomb Hits:', 'BombHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Ice Hits:', 'IceHits', 0, 10));
             settingsContainer.appendChild(createSettingInput('Flower Skip %:', 'flowerSkipPercentage', 0, 100));
 
             // Back Button
@@ -133,7 +135,6 @@
         }
     };
 
-    // Create Setting Input Function
     function createSettingInput(label, settingName, min, max) {
         const settingDiv = document.createElement('div');
         settingDiv.style.marginBottom = '5px';
@@ -172,10 +173,227 @@
     container.appendChild(startButton);
 
     startButton.onclick = function() {
-        console.log('Script is running...');
+        isGameRunning = true;
         settingsContainer.style.display = 'none';
         isSettingsOpen = false;
         settingsButton.textContent = 'Settings';
+        startGame();
     };
+
+    function startGame() {
+        console.log('Script started with settings:', GAME_SETTINGS);
+
+        let gameStats = {
+            score: 0,
+            bombHits: 0,
+            iceHits: 0,
+            flowersSkipped: 0,
+            isGameOver: false,
+        };
+
+        const originalPush = Array.prototype.push;
+        Array.prototype.push = function (...items) {
+            if (!isGamePaused && isGameRunning) {
+                items.forEach(item => handleGameElement(item));
+            }
+            return originalPush.apply(this, items);
+        };
+
+        function handleGameElement(element) {
+            if (!element || !element.item) return;
+
+            const { type } = element.item;
+            switch (type) {
+                case "CLOVER":
+                    processFlower(element);
+                    break;
+                case "BOMB":
+                    processBomb(element);
+                    break;
+                case "FREEZE":
+                    processIce(element);
+                    break;
+            }
+        }
+
+        function processFlower(element) {
+            const shouldSkip = Math.random() < (GAME_SETTINGS.flowerSkipPercentage / 100);
+            if (shouldSkip) {
+                gameStats.flowersSkipped++;
+            } else {
+                gameStats.score++;
+                clickElement(element);
+            }
+        }
+
+        function processBomb(element) {
+            if (gameStats.bombHits < GAME_SETTINGS.BombHits) {
+                gameStats.score = 0;
+                clickElement(element);
+                gameStats.bombHits++;
+            }
+        }
+
+        function processIce(element) {
+            if (gameStats.iceHits < GAME_SETTINGS.IceHits) {
+                clickElement(element);
+                gameStats.iceHits++;
+            }
+        }
+
+        function clickElement(element) {
+            element.onClick(element);
+            element.isExplosion = true;
+            element.addedAt = performance.now();
+        }
+
+        function checkGameCompletion() {
+            const rewardElement = document.querySelector('#app > div > div > div.content > div.reward');
+            if (rewardElement && !gameStats.isGameOver) {
+                gameStats.isGameOver = true;
+                logGameStats();
+                resetGameStats();
+                if (window.__NUXT__.state.$s$0olocQZxou.playPasses > 0) {
+                    startNewGame();
+                }
+            }
+        }
+
+        function logGameStats() {
+            console.log(`Game Over. Stats: Score: ${gameStats.score}, Bombs: ${gameStats.bombHits}, Ice: ${gameStats.iceHits}, Flowers Skipped: ${gameStats.flowersSkipped}`);
+        }
+
+        function resetGameStats() {
+            gameStats = {
+                score: 0,
+                bombHits: 0,
+                iceHits: 0,
+                flowersSkipped: 0,
+                isGameOver: false,
+            };
+        }
+
+        function getRandomDelay() {
+            return Math.random() * (GAME_SETTINGS.maxDelayMs - GAME_SETTINGS.minDelayMs) + GAME_SETTINGS.minDelayMs;
+        }
+
+        function startNewGame() {
+            setTimeout(() => {
+                const newGameButton = document.querySelector("#app > div > div > div.buttons > button:nth-child(2)");
+                if (newGameButton) {
+                    newGameButton.click();
+                }
+                gameStats.isGameOver = false;
+            }, getRandomDelay());
+        }
+
+        const observer = new MutationObserver(mutations => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList') {
+                    checkGameCompletion();
+                }
+            }
+        });
+
+        const appElement = document.querySelector('#app');
+        if (appElement) {
+            observer.observe(appElement, { childList: true, subtree: true });
+        }
+
+        // Controls UI
+        const controlsContainer = document.createElement('div');
+        controlsContainer.style.position = 'fixed';
+        controlsContainer.style.top = '0';
+        controlsContainer.style.left = '50%';
+        controlsContainer.style.transform = 'translateX(-50%)';
+        controlsContainer.style.zIndex = '9999';
+        controlsContainer.style.backgroundColor = 'black';
+        controlsContainer.style.padding = '10px 20px';
+        controlsContainer.style.borderRadius = '10px';
+        document.body.appendChild(controlsContainer);
+
+        const OutGamePausedTrue = document.createElement('a');
+        OutGamePausedTrue.href = atob('aHR0cHM6Ly90Lm1lL1NOVHJpY2tzQkQ=');
+        OutGamePausedTrue.textContent = atob('VEc6IFNOIFRyaWNrcw==');
+        OutGamePausedTrue.style.color = 'white';
+        controlsContainer.appendChild(OutGamePausedTrue);
+
+        const lineBreak = document.createElement('br');
+        controlsContainer.appendChild(lineBreak);
+
+        const pauseButton = document.createElement('button');
+        pauseButton.textContent = '▶';
+        pauseButton.style.padding = '4px 8px';
+        pauseButton.style.backgroundColor = '#5d2a8f';
+        pauseButton.style.color = 'white';
+        pauseButton.style.border = 'none';
+        pauseButton.style.borderRadius = '10px';
+        pauseButton.style.cursor = 'pointer';
+        pauseButton.style.marginRight = '5px';
+        pauseButton.onclick = toggleGamePause;
+        controlsContainer.appendChild(pauseButton);
+
+        const settingsButton = document.createElement('button');
+        settingsButton.textContent = atob('U2V0dGluZ3M=');
+        settingsButton.style.padding = '4px 8px';
+        settingsButton.style.backgroundColor = '#5d2a8f';
+        settingsButton.style.color = 'white';
+        settingsButton.style.border = 'none';
+        settingsButton.style.borderRadius = '10px';
+        settingsButton.style.cursor = 'pointer';
+        settingsButton.onclick = toggleSettings;
+        controlsContainer.appendChild(settingsButton);
+
+        const settingsContainer = document.createElement('div');
+        settingsContainer.style.display = 'none';
+        settingsContainer.style.marginTop = '10px';
+        controlsContainer.appendChild(settingsContainer);
+
+        function createSettingInput(label, settingName, min, max) {
+            const settingDiv = document.createElement('div');
+            settingDiv.style.marginBottom = '5px';
+            settingDiv.style.color = 'white';
+
+            const labelElement = document.createElement('label');
+            labelElement.textContent = label;
+            labelElement.style.display = 'block';
+            labelElement.style.color = 'white';
+            settingDiv.appendChild(labelElement);
+
+            const inputElement = document.createElement('input');
+            inputElement.type = 'number';
+            inputElement.value = GAME_SETTINGS[settingName];
+            inputElement.min = min;
+            inputElement.max = max;
+            inputElement.style.width = '50px';
+            inputElement.addEventListener('input', () => {
+                GAME_SETTINGS[settingName] = parseInt(inputElement.value, 10);
+            });
+            settingDiv.appendChild(inputElement);
+
+            return settingDiv;
+        }
+
+        function toggleSettings() {
+            isSettingsOpen = !isSettingsOpen;
+            if (isSettingsOpen) {
+                settingsContainer.style.display = 'block';
+                settingsContainer.innerHTML = '';
+                settingsContainer.appendChild(createSettingInput('Bomb Hits:', 'BombHits', 0, 10));
+                settingsContainer.appendChild(createSettingInput('Ice Hits:', 'IceHits', 0, 10));
+                settingsContainer.appendChild(createSettingInput('Flower Skip %:', 'flowerSkipPercentage', 0, 100));
+            } else {
+                settingsContainer.style.display = 'none';
+            }
+        }
+
+        function toggleGamePause() {
+            isGamePaused = !isGamePaused;
+            pauseButton.textContent = isGamePaused ? '▶' : '❚❚';
+        }
+
+    } catch (e) {
+        console.log('Failed to initiate the game script');
+    }
 })();
-        
+            
