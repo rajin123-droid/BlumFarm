@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      2.5
+// @version      2.6
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -13,27 +13,55 @@
 (function() {
     'use strict';
 
+    let GAME_SETTINGS = {
+        BombHits: 0,
+        IceHits: 0,
+        FlowerHits: 1, // Default to 1 if none
+    };
+
     let isSettingsComplete = false;
     let isGameStarted = false;
 
-    // Function to start the game script
     function startGameScript() {
         if (!isGameStarted) {
             isGameStarted = true;
+            console.log('Game script started!');
             // Add your game script logic here
-            console.log('Game script started!'); // Placeholder for actual game logic
         }
     }
 
-    // Function to show the dashboard
     function showDashboard() {
         container.style.transform = 'translateX(-50%)'; // Ensure the dashboard is centered
         container.style.display = 'block'; // Ensure the dashboard is visible
     }
 
-    // Function to hide the dashboard
     function hideDashboard() {
         container.style.display = 'none';
+    }
+
+    function createButton(text, color, hoverColor, onClick, additionalStyles = {}) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.style.padding = '10px 20px';
+        button.style.backgroundColor = color;
+        button.style.color = 'white';
+        button.style.border = 'none';
+        button.style.borderRadius = '6px';
+        button.style.cursor = 'pointer';
+        button.style.marginTop = '15px';
+        button.style.fontSize = '14px';
+        button.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
+        Object.assign(button.style, additionalStyles);
+        button.onmouseover = function() {
+            button.style.backgroundColor = hoverColor;
+            button.style.transform = 'scale(1.05)';
+        };
+        button.onmouseout = function() {
+            button.style.backgroundColor = color;
+            button.style.transform = 'scale(1)';
+        };
+        button.onclick = onClick;
+        return button;
     }
 
     // Create and style container
@@ -71,64 +99,12 @@
     header.appendChild(title);
 
     // Create and style back button
-    const backButton = document.createElement('button');
-    backButton.textContent = 'Back';
-    backButton.style.padding = '8px 16px';
-    backButton.style.backgroundColor = '#e67e22'; // Orange color
-    backButton.style.color = 'white';
-    backButton.style.border = 'none';
-    backButton.style.borderRadius = '6px';
-    backButton.style.cursor = 'pointer';
-    backButton.style.marginTop = '10px';
-    backButton.style.fontSize = '14px';
-    backButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
-    backButton.onmouseover = function() {
-        backButton.style.backgroundColor = '#d35400'; // Darker orange
-        backButton.style.transform = 'scale(1.05)';
-    };
-    backButton.onmouseout = function() {
-        backButton.style.backgroundColor = '#e67e22'; // Orange color
-        backButton.style.transform = 'scale(1)';
-    };
-    backButton.onclick = function() {
-        if (!isSettingsComplete) {
-            settingsContainer.style.display = 'block'; // Show settings
-            settingsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            startGameScript();
-        }
-    };
-    header.appendChild(backButton);
-
-    // Create and style message
-    const message = document.createElement('p');
-    message.textContent = 'You are using a pirated version. Click below for more information.';
-    message.style.margin = '0';
-    message.style.fontSize = '16px';
-    message.style.color = '#34495e'; // Darker text color for readability
-    container.appendChild(message);
-
-    // Create and style toggle button
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'More Info';
-    toggleButton.style.padding = '10px 20px';
-    toggleButton.style.backgroundColor = '#3498db'; // Blue color
-    toggleButton.style.color = 'white';
-    toggleButton.style.border = 'none';
-    toggleButton.style.borderRadius = '6px';
-    toggleButton.style.cursor = 'pointer';
-    toggleButton.style.marginTop = '15px';
-    toggleButton.style.fontSize = '14px';
-    toggleButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
-    toggleButton.onmouseover = function() {
-        toggleButton.style.backgroundColor = '#2980b9'; // Darker blue
-        toggleButton.style.transform = 'scale(1.05)';
-    };
-    toggleButton.onmouseout = function() {
-        toggleButton.style.backgroundColor = '#3498db'; // Blue color
-        toggleButton.style.transform = 'scale(1)';
-    };
-    container.appendChild(toggleButton);
+    function createBackButton(callback) {
+        const backButton = createButton('Back', '#e67e22', '#d35400', callback, {
+            marginTop: '10px',
+        });
+        return backButton;
+    }
 
     // Create and style settings container
     const settingsContainer = document.createElement('div');
@@ -140,80 +116,61 @@
     settingsContainer.style.textAlign = 'left';
     container.appendChild(settingsContainer);
 
-    // Create and style purchase block
-    const purchaseBlock = document.createElement('div');
-    purchaseBlock.style.display = 'none';
-    purchaseBlock.style.marginTop = '15px';
-    purchaseBlock.style.color = 'black';
-    purchaseBlock.style.fontSize = '14px';
-    purchaseBlock.style.lineHeight = '1.5';
-    purchaseBlock.innerHTML = `
-        Join the Telegram group for updates: <a href="https://t.me/HotCastr" style="color: #1abc9c; text-decoration: none; font-weight: bold;">@HotCastr</a><br>
-        To purchase the script and get updates, please DM <a href="https://t.me/iaminalongjurney" style="color: #1abc9c; text-decoration: none; font-weight: bold;">@iaminalongjurney</a>.
-    `;
-    container.appendChild(purchaseBlock);
+    function createSettingInput(label, settingName, min, max) {
+        const settingDiv = document.createElement('div');
+        settingDiv.style.marginBottom = '10px';
 
-    // Toggle button action
-    toggleButton.onclick = function() {
-        purchaseBlock.style.display = purchaseBlock.style.display === 'none' ? 'block' : 'none';
-    };
+        const labelElement = document.createElement('label');
+        labelElement.textContent = label;
+        labelElement.style.display = 'block';
+        labelElement.style.color = 'black';
+        settingDiv.appendChild(labelElement);
 
-    // Create and style settings save button
-    const saveSettingsButton = document.createElement('button');
-    saveSettingsButton.textContent = 'Save Settings';
-    saveSettingsButton.style.padding = '8px 16px';
-    saveSettingsButton.style.backgroundColor = '#2ecc71'; // Green color
-    saveSettingsButton.style.color = 'white';
-    saveSettingsButton.style.border = 'none';
-    saveSettingsButton.style.borderRadius = '6px';
-    saveSettingsButton.style.cursor = 'pointer';
-    saveSettingsButton.style.marginTop = '10px';
-    saveSettingsButton.style.fontSize = '14px';
-    saveSettingsButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
-    saveSettingsButton.onmouseover = function() {
-        saveSettingsButton.style.backgroundColor = '#27ae60'; // Darker green
-        saveSettingsButton.style.transform = 'scale(1.05)';
-    };
-    saveSettingsButton.onmouseout = function() {
-        saveSettingsButton.style.backgroundColor = '#2ecc71'; // Green color
-        saveSettingsButton.style.transform = 'scale(1)';
-    };
-    saveSettingsButton.onclick = function() {
-        isSettingsComplete = true;
-        settingsContainer.style.display = 'none'; // Hide settings after saving
-        playButton.style.display = 'block'; // Show play button
-        backButton.textContent = 'Start Game'; // Update button text
-    };
-    settingsContainer.appendChild(saveSettingsButton);
+        const inputElement = document.createElement('input');
+        inputElement.type = 'number';
+        inputElement.value = GAME_SETTINGS[settingName];
+        inputElement.min = min;
+        inputElement.max = max;
+        inputElement.style.width = '60px';
+        inputElement.style.padding = '4px';
+        inputElement.style.marginTop = '5px';
+        inputElement.addEventListener('input', () => {
+            GAME_SETTINGS[settingName] = parseInt(inputElement.value, 10) || 0;
+        });
+        settingDiv.appendChild(inputElement);
+
+        return settingDiv;
+    }
+
+    function toggleSettings() {
+        settingsContainer.style.display = settingsContainer.style.display === 'none' ? 'block' : 'none';
+        if (settingsContainer.style.display === 'block') {
+            settingsContainer.innerHTML = '';
+            settingsContainer.appendChild(createSettingInput('Bombs to Click:', 'BombHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Ice to Click:', 'IceHits', 0, 10));
+            settingsContainer.appendChild(createSettingInput('Green Leaves to Click:', 'FlowerHits', 1, 20)); // Default to 1 if none
+            settingsContainer.appendChild(createBackButton(() => {
+                settingsContainer.style.display = 'none'; // Hide settings
+                container.style.display = 'block'; // Show main dashboard
+            }));
+        }
+    }
+
+    const backButton = createBackButton(() => {
+        settingsContainer.style.display = 'none'; // Hide settings
+        container.style.display = 'none'; // Hide main dashboard
+    });
+    header.appendChild(backButton);
 
     // Create and style play button
-    const playButton = document.createElement('button');
-    playButton.textContent = 'Play Game';
-    playButton.style.padding = '10px 20px';
-    playButton.style.backgroundColor = '#e74c3c'; // Red color
-    playButton.style.color = 'white';
-    playButton.style.border = 'none';
-    playButton.style.borderRadius = '6px';
-    playButton.style.cursor = 'pointer';
-    playButton.style.marginTop = '15px';
-    playButton.style.fontSize = '14px';
-    playButton.style.transition = 'background-color 0.3s ease, transform 0.3s ease';
-    playButton.onmouseover = function() {
-        playButton.style.backgroundColor = '#c0392b'; // Darker red
-        playButton.style.transform = 'scale(1.05)';
-    };
-    playButton.onmouseout = function() {
-        playButton.style.backgroundColor = '#e74c3c'; // Red color
-        playButton.style.transform = 'scale(1)';
-    };
-    playButton.style.display = 'none'; // Initially hidden
-    playButton.onclick = function() {
+    const playButton = createButton('Start Script', '#e74c3c', '#c0392b', function() {
         if (isSettingsComplete) {
             startGameScript();
         } else {
             alert('Please complete the settings first.');
         }
-    };
+    });
+    playButton.style.display = 'none'; // Initially hidden
     container.appendChild(playButton);
 
     // Automatically show the dashboard on page load
@@ -221,5 +178,17 @@
         showDashboard();
     });
 
+    // Observer to start the script when the page loads
+    const observer = new MutationObserver(() => {
+        if (!isGameStarted) {
+            showDashboard();
+        }
+    });
+
+    const appElement = document.querySelector('#app');
+    if (appElement) {
+        observer.observe(appElement, { childList: true, subtree: true });
+    }
+
 })();
-    
+            
