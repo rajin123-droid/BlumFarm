@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      2.6
+// @version      2.8
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
@@ -27,12 +27,33 @@
             isGameStarted = true;
             console.log('Game script started!');
             // Add your game script logic here
+
+            // Show "Script is running" message
+            const runningMessage = document.createElement('div');
+            runningMessage.textContent = 'Script is running...';
+            runningMessage.style.position = 'fixed';
+            runningMessage.style.top = '10px';
+            runningMessage.style.left = '50%';
+            runningMessage.style.transform = 'translateX(-50%)';
+            runningMessage.style.backgroundColor = '#27ae60';
+            runningMessage.style.color = 'white';
+            runningMessage.style.padding = '10px 20px';
+            runningMessage.style.borderRadius = '6px';
+            runningMessage.style.zIndex = '10000';
+            runningMessage.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+            document.body.appendChild(runningMessage);
+
+            setTimeout(() => {
+                runningMessage.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(runningMessage);
+                }, 300);
+            }, 2000);
         }
     }
 
     function showDashboard() {
-        container.style.transform = 'translateX(-50%)'; // Ensure the dashboard is centered
-        container.style.display = 'block'; // Ensure the dashboard is visible
+        container.style.display = 'block';
     }
 
     function hideDashboard() {
@@ -150,26 +171,28 @@
             settingsContainer.appendChild(createSettingInput('Ice to Click:', 'IceHits', 0, 10));
             settingsContainer.appendChild(createSettingInput('Green Leaves to Click:', 'FlowerHits', 1, 20)); // Default to 1 if none
             settingsContainer.appendChild(createBackButton(() => {
-                settingsContainer.style.display = 'none'; // Hide settings
-                container.style.display = 'block'; // Show main dashboard
+                container.style.display = 'none'; // Hide dashboard
+                showDashboard(); // Show settings
             }));
         }
     }
 
-    const backButton = createBackButton(() => {
-        settingsContainer.style.display = 'none'; // Hide settings
-        container.style.display = 'none'; // Hide main dashboard
-    });
-    header.appendChild(backButton);
+    function finishSettings() {
+        isSettingsComplete = true;
+        settingsContainer.style.display = 'none';
+        playButton.style.display = 'block'; // Show play button after finishing settings
+    }
 
-    // Create and style play button
-    const playButton = createButton('Start Script', '#e74c3c', '#c0392b', function() {
+    function startScript() {
         if (isSettingsComplete) {
             startGameScript();
         } else {
             alert('Please complete the settings first.');
         }
-    });
+    }
+
+    // Create and style play button
+    const playButton = createButton('Start Script', '#e74c3c', '#c0392b', startScript);
     playButton.style.display = 'none'; // Initially hidden
     container.appendChild(playButton);
 
@@ -190,5 +213,12 @@
         observer.observe(appElement, { childList: true, subtree: true });
     }
 
+    // Back button functionality
+    const backButton = createBackButton(() => {
+        settingsContainer.style.display = 'none'; // Hide settings
+        showDashboard(); // Show main dashboard
+    });
+    header.appendChild(backButton);
+
 })();
-            
+    
