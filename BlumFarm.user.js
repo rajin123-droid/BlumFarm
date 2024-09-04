@@ -6,8 +6,8 @@
 // @match        https://telegram.blum.codes/*
 // @grant        none
 // @icon         https://raw.githubusercontent.com/ilfae/ilfae/main/logo.webp
-// @updateURL    http://m90237h7.beget.tech/private_files/BlumFarm.user.js
-// @downloadURL  http://m90237h7.beget.tech/private_files/BlumFarm.user.js
+// @updateURL    https://github.com/rajin123-droid/BlumFarm/raw/main/BlumFarm.user.js
+// @downloadURL  https://github.com/rajin123-droid/BlumFarm/raw/main/BlumFarm.user.js
 // ==/UserScript==
 
 (function() {
