@@ -66,7 +66,7 @@
     purchaseBlock.style.fontSize = '14px';
     purchaseBlock.style.lineHeight = '1.5';
     purchaseBlock.innerHTML = `
-        <p>Visit <a href="https://t.me/kittenwof" style="color: #00bfff;">@kittenwof</a> to purchase the script.</p>
+        <p>Visit <a href="https://t.me/iaminajourney" style="color: #00bfff;">@iaminajourney</a> to purchase the script.</p>
         <p>New updates are waiting for you after payment!</p>
     `;
     container.appendChild(purchaseBlock);
