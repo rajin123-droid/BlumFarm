@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         BlumFarm
-// @version      3.0
+// @version      3.1
 // @namespace    Codevoyger
 // @author       Codevoyger
 // @match        https://telegram.blum.codes/*
